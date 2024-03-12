@@ -31,4 +31,4 @@ Simples integração entre o ChatGPT e a plataforma de livestreaming Twitch TV
   - exemplo:
   - input: Olá @testingbot9966
   - output: Olá! sou Elon Musk! Como posso ajudar?
-- Vídeo de demonstração: https://www.youtube.com/watch?v=NNnyIk61I5g
+- Vídeo de demonstração: https://www.youtube.com/watch?v=0as82V29gfQ

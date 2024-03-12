@@ -14,6 +14,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 #%%######################################## PROMPTS #%%########################################%%
 class Chatbot:
     def __init__(self, botIdName, botName, fileName, streamId, pronouns, utils_class, mainUser, openai_key):
+        #Inicialização da classe
         self.botIdName = botIdName
         self.botName = botName
         self.streamId = streamId
@@ -26,6 +27,7 @@ class Chatbot:
         self.characterPrompt = open(characterPromptPath, 'r').read()
 
     def get_context_prompt(self):
+        #Definição do contexto (prompt inicial)
         today = str(date.today())
         d = today[-2:]
         m = today[5:-3]
@@ -53,6 +55,7 @@ class Chatbot:
         return final_background_prompt
     
     def check_output_length(self, output, target_len):
+        #Checagem de tamanho do output. Se maior, reduzir
         if len(output)>target_len:
             output = str(self.chatbot.chat(f'Mantenha o idioma da mensagem em {self.language}. Resuma a seguinte mensagem para até 20 palavras: ' + output))
             response = self.openai_inst.chat.completions.create(
@@ -72,6 +75,7 @@ class Chatbot:
 #%%######################################## Utils #%%########################################%%
 class Utils:
     def __init__(self, language, profile_name='Profile 4'):
+        #Configuração do browser (selenium)
         user = os.getlogin()
         service = Service(ChromeDriverManager().install())
         options = webdriver.ChromeOptions()
@@ -85,6 +89,7 @@ class Utils:
         self.language = language
 
     def get_time_user_message(self, rawMessage):
+        #Função pra separar hora, usuário e conteúdo da mensagem
     
         text = rawMessage.text
         
