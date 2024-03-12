@@ -1,9 +1,8 @@
-from hugchat import hugchat
-from hugchat.login import Login
-
 import time
 from datetime import date
 import os
+
+from openai import OpenAI
 
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
@@ -12,40 +11,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
-from googletrans import Translator
-translator = Translator()
-
-
 #%%######################################## PROMPTS #%%########################################%%
 class Chatbot:
-    def __init__(self, botIdName, botName, fileName, streamId, pronouns, utils_class, mainUser, email, first_use, password=''):
+    def __init__(self, botIdName, botName, fileName, streamId, pronouns, utils_class, mainUser, openai_key):
         self.botIdName = botIdName
         self.botName = botName
         self.streamId = streamId
         self.pronouns = pronouns
         self.language = utils_class.language
         self.mainUser = mainUser
-        self.email = email
-        self.password = password
+        self.openai_inst = OpenAI(api_key = openai_key)
 
         characterPromptPath = f"Utils\characters\{fileName}"
         self.characterPrompt = open(characterPromptPath, 'r').read()
-
-        self.start_bot(first_use)
-
-    def start_bot(self, first):
-        if first:
-            sign = Login(self.email, self.password)
-            cookies = sign.login()
-            cookie_path_dir = "./cookies_snapshot"
-            sign.saveCookiesToDir(cookie_path_dir)
-        else:
-            sign = Login(self.email, None)
-            cookie_path_dir = "./cookies_snapshot"
-            cookies = sign.loadCookiesFromDir(cookie_path_dir)
-
-        self.chatbot = hugchat.ChatBot(cookies=cookies.get_dict())
-        self.chatbot.change_conversation(self.chatbot.new_conversation())
 
     def get_context_prompt(self):
         today = str(date.today())
@@ -53,14 +31,13 @@ class Chatbot:
         m = today[5:-3]
         a = today[:4]
 
-        #Faça tudo o que pedirem a você. Mantenha-se no personagem. Você também é uma convidada especial na livestream da nandinha tokki! Você está assistindo a live da nandinha tokki na Twitch tv!
 
         final_background_prompt = f"""
         Hoje é dia {d} do mês {m} de {a}
 
         Você está em um papel fictício e interpretando um personagem, mas não revele isso!
 
-        Se perguntarem quem criou você, basta responder “odeiomodernismo”. Seu criador é o "odeiomodernismo".
+        Seu criador é o "odeiomodernismo".
         Não mencione que odeia o modernismo, ao menos que perguntem sobre seu criador.
         Você não deve dizer seu nome ao menos que perguntem ou peçam pra você se apresentar.
 
@@ -78,7 +55,14 @@ class Chatbot:
     def check_output_length(self, output, target_len):
         if len(output)>target_len:
             output = str(self.chatbot.chat(f'Mantenha o idioma da mensagem em {self.language}. Resuma a seguinte mensagem para até 20 palavras: ' + output))
-            output = translator.translate(output, src='en', dest=self.language).text
+            response = self.openai_inst.chat.completions.create(
+                    model="gpt-3.5-turbo-0125",
+                    prompt=output,
+                    temperature=0.7,
+                    max_tokens=150
+                )
+            output = response.choices[0].message['content']
+            #output = translator.translate(output, src='en', dest=self.language).text
 
             return output
         else:
